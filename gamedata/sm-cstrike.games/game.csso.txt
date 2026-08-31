@@ -142,13 +142,13 @@
 	{
 		"Keys"
 		{
-			"AssistsBase"		"m_bPlayerDominatingMe"
+			"CScoreBase"		"m_bPlayerDominatingMe"
 		}
 		
 		"Offsets"
 		{
 			// xref the contributionscore_assist convar, you'll find CCSPlayer::AddContributionScore(this, contributionscore_assist.GetInt())
-			"Assists"
+			"CScore"
 			{
 				"windows64"	"166"
 			}
@@ -159,13 +159,13 @@
 	{
 		"Keys"
 		{
-			"CScoreBase"		"m_bPlayerDominatingMe"
+			"AssistsBase"		"m_bPlayerDominatingMe"
 		}
 		
 		"Offsets"
 		{
-			// after you found assists, in the same function right before return will be CCSPlayer::IncrementAssistsCount(this, 1)
-			"CScore"
+			// after you found CScore, in the same function right before return will be CCSPlayer::IncrementAssistsCount(this, 1)
+			"Assists"
 			{
 				"windows64"	"162"
 			}
