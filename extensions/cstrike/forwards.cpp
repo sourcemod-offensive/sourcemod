@@ -51,6 +51,14 @@ DETOUR_DECL_MEMBER4(DetourHandleBuy, int, int, iLoadoutSlot, void *, pWpnDataRef
 #elif SOURCE_ENGINE == SE_CSSO
 DETOUR_DECL_MEMBER2(DetourHandleBuy, int, void*, pWpnData, bool, bDrop)
 {
+	if (!pWpnData)
+	{
+		g_bDonated = bDrop;
+		int ret = DETOUR_MEMBER_CALL(DetourHandleBuy)(pWpnData, bDrop);
+		g_bDonated = false;
+		return ret;
+	}
+
 	CBaseEntity *pEntity = reinterpret_cast<CBaseEntity *>(this);
 	int client = gamehelpers->EntityToBCompatRef(pEntity);
 	const char *szClassname = (const char *)((intptr_t)pWpnData + weaponNameOffset);
