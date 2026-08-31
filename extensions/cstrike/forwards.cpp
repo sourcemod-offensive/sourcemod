@@ -234,7 +234,7 @@ DETOUR_DECL_MEMBER3(DetourCSWeaponDrop, void, CBaseEntity *, weapon, bool, bThro
 #elif SOURCE_ENGINE == SE_CSS
 DETOUR_DECL_MEMBER3(DetourCSWeaponDrop, void, CBaseEntity *, weapon, bool, bDropShield, bool, bThrowForward)
 #elif SOURCE_ENGINE == SE_CSSO
-DETOUR_DECL_MEMBER3(DetourCSWeaponDrop, void, CBaseEntity *, weapon, float*, unk1, float*, unk2)
+DETOUR_DECL_MEMBER2(DetourCSWeaponDrop, void, CBaseEntity *, weapon, Vector&, targetPos)
 #endif
 {
 #if SOURCE_ENGINE == SE_CSSO
@@ -249,7 +249,7 @@ DETOUR_DECL_MEMBER3(DetourCSWeaponDrop, void, CBaseEntity *, weapon, float*, unk
 #elif SOURCE_ENGINE == SE_CSS
 		DETOUR_MEMBER_CALL(DetourCSWeaponDrop)(weapon, bDropShield, bThrowForward);
 #elif SOURCE_ENGINE == SE_CSSO
-		DETOUR_MEMBER_CALL(DetourCSWeaponDrop)(weapon, unk1, unk2);
+		DETOUR_MEMBER_CALL(DetourCSWeaponDrop)(weapon, targetPos);
 #endif
 		return;
 	}
@@ -275,7 +275,7 @@ DETOUR_DECL_MEMBER3(DetourCSWeaponDrop, void, CBaseEntity *, weapon, float*, unk
 #elif SOURCE_ENGINE == SE_CSS
 		DETOUR_MEMBER_CALL(DetourCSWeaponDrop)(weapon, bDropShield, bThrowForward);
 #elif SOURCE_ENGINE == SE_CSSO
-		DETOUR_MEMBER_CALL(DetourCSWeaponDrop)(weapon, unk1, unk2);
+		DETOUR_MEMBER_CALL(DetourCSWeaponDrop)(weapon, targetPos);
 #endif
 	}
 

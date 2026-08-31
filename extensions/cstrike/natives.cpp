@@ -221,23 +221,101 @@ static cell_t CS_SwitchTeam(IPluginContext *pContext, const cell_t *params)
 	return 1;
 }
 
+Vector WorldSpaceCenter(CBaseEntity *pEntity)
+{
+	static ICallWrapper *pWrapper = NULL;
+
+	if (!pWrapper)
+	{
+		int offset = -1;
+		if (!g_pGameConf->GetOffset("WorldSpaceCenter", &offset) || offset == -1)
+		{
+			smutils->LogError(myself, "Failed to get WorldSpaceCenter offset.");
+			return Vector(0, 0, 0);
+		}
+
+		PassInfo ret;
+		ret.flags = PASSFLAG_BYVAL;
+		ret.type = PassType_Basic;
+		ret.size = sizeof(Vector*);
+
+		pWrapper = g_pBinTools->CreateVCall(offset, 0, 0, &ret, NULL, 0);
+		g_RegNatives.Register(pWrapper);
+	}
+
+	ArgBuffer<CBaseEntity*> vstk(pEntity);
+
+	Vector *pWorldSpaceCenter = nullptr;
+	pWrapper->Execute(vstk, &pWorldSpaceCenter);
+	return pWorldSpaceCenter ? *pWorldSpaceCenter : Vector(0, 0, 0);
+}
+
+QAngle EyeAngles(CBaseEntity *pEntity)
+{
+	static ICallWrapper *pWrapper = NULL;
+
+	if (!pWrapper)
+	{
+		int offset = -1;
+		if (!g_pGameConf->GetOffset("EyeAngles", &offset) || offset == -1)
+		{
+			smutils->LogError(myself, "Failed to get EyeAngles offset.");
+			return QAngle(0, 0, 0);
+		}
+
+		PassInfo ret;
+		ret.flags = PASSFLAG_BYVAL;
+		ret.type = PassType_Basic;
+		ret.size = sizeof(QAngle*);
+
+		pWrapper = g_pBinTools->CreateVCall(offset, 0, 0, &ret, NULL, 0);
+		g_RegNatives.Register(pWrapper);
+	}
+
+	ArgBuffer<CBaseEntity*> vstk(pEntity);
+
+	QAngle *pEyeAngles = nullptr;
+	pWrapper->Execute(vstk, &pEyeAngles);
+	return pEyeAngles ? *pEyeAngles : QAngle(0, 0, 0);
+}
+
 static cell_t CS_DropWeapon(IPluginContext *pContext, const cell_t *params)
 {
 	static ICallWrapper *pWrapper = NULL;
 	if (!pWrapper)
 	{
-		REGISTER_NATIVE_ADDR(WEAPONDROP_GAMEDATA_NAME,
-			PassInfo pass[3]; \
-			pass[0].flags = PASSFLAG_BYVAL; \
-			pass[0].type  = PassType_Basic; \
-			pass[0].size  = sizeof(CBaseEntity *); \
-			pass[1].flags = PASSFLAG_BYVAL; \
-			pass[1].type  = PassType_Basic; \
-			pass[1].size  = sizeof(bool); \
-			pass[2].flags = PASSFLAG_BYVAL; \
-			pass[2].type  = PassType_Basic; \
-			pass[2].size  = sizeof(bool); \
-			pWrapper = g_pBinTools->CreateCall(addr, CallConv_ThisCall, NULL, pass, 3))
+		void *addr;
+		if (!g_pGameConf->GetMemSig(WEAPONDROP_GAMEDATA_NAME, &addr) || !addr)
+		{
+			return pContext->ThrowNativeError("Failed to lookup %s signature.", WEAPONDROP_GAMEDATA_NAME);
+		}
+
+		PassInfo pass[3];
+
+		pass[0].flags = PASSFLAG_BYVAL;
+		pass[0].type  = PassType_Basic;
+		pass[0].size  = sizeof(CBaseEntity *);
+
+#if SOURCE_ENGINE == SE_CSSO
+		int params = 2;
+
+		pass[1].flags = PASSFLAG_BYREF;
+		pass[1].type  = PassType_Basic;
+		pass[1].size  = sizeof(Vector);
+#else
+		int params = 3;
+
+		pass[1].flags = PASSFLAG_BYVAL;
+		pass[1].type  = PassType_Basic;
+		pass[1].size  = sizeof(bool);
+
+		pass[2].flags = PASSFLAG_BYVAL;
+		pass[2].type  = PassType_Basic;
+		pass[2].size  = sizeof(bool);
+#endif
+
+		pWrapper = g_pBinTools->CreateCall(addr, CallConv_ThisCall, NULL, pass, params);
+		g_RegNatives.Register(pWrapper);
 	}
 
 	CBaseEntity *pEntity;
@@ -275,8 +353,17 @@ static cell_t CS_DropWeapon(IPluginContext *pContext, const cell_t *params)
 
 #if SOURCE_ENGINE == SE_CSGO
 	ArgBuffer<CBaseEntity*, CBaseEntity*, bool, bool> vstk(pEntity, pWeapon, !!params[3], false);
-#else
+#elif SOURCE_ENGINE == SE_CSS
 	ArgBuffer<CBaseEntity*, CBaseEntity*, bool, bool> vstk(pEntity, pWeapon, false, !!params[3]);
+#elif SOURCE_ENGINE == SE_CSSO
+	Vector vTossPos = WorldSpaceCenter(pEntity);
+	if (!!params[3])
+	{
+		Vector vForward;
+		AngleVectors(EyeAngles(pEntity), &vForward, NULL, NULL);
+		vTossPos = vTossPos + vForward * 64;
+	}
+	ArgBuffer<CBaseEntity*, CBaseEntity*, Vector&> vstk(pEntity, pWeapon, vTossPos);
 #endif
 
 	pWrapper->Execute(vstk, NULL);
