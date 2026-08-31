@@ -19,14 +19,17 @@
 		{
 			"GetTEName"
 			{
+				"windows"	"4"
 				"windows64"	"8"
 			}
 			"GetTENext"
 			{
+				"windows"	"8"
 				"windows64"	"16"
 			}
 			"TE_GetServerClass"
 			{
+				"windows"	"0"
 				"windows64"	"0"
 			}
 		}
@@ -41,6 +44,7 @@
 			"FireOutput"
 			{
 				"library"	"server"
+				"windows"	"\x55\x8B\xEC\x81\xEC\x2A\x2A\x2A\x2A\x53\x8B\xC1"
 				"windows64"	"\x48\x8B\xC4\x48\x89\x50\x2A\x48\x89\x48\x2A\x56"
 			}
 		}
@@ -64,12 +68,14 @@
 			// CBaseClient::SetName + 1
 			"SetUserCvar"
 			{
+				"windows"	"18"
 				"windows64"	"18"
 			}
 			// CBaseClient::SetName
 			// STRING: "(%d)%-.*s"
 			"SetClientName"
 			{
+				"windows"	"17"
 				"windows64"	"17"
 			}
 			// Offset into CBaseClient - Used by CBaseServer::UpdateUserSettings to determine when changes have been made.
@@ -77,6 +83,7 @@
 			// mov     byte ptr [esi+0A0h], 0
 			"InfoChanged"
 			{
+				"windows"	"160"
 				"windows64"	"160"
 			}
 		}
@@ -89,31 +96,37 @@
 			// ScriptSetOwnerEntity
 			"SetOwnerEntity"
 			{
+				"windows"	"21"
 				"windows64"	"21"
 			}
 			// STRING: "NULL Ent in GiveNamedItem!"
 			"GiveNamedItem"
 			{
+				"windows"	"420"
 				"windows64"	"420"
 			}
 			// Weapon_* functions can be found in vscript's "ScriptWeapon_*"
 			"Weapon_GetSlot"
 			{
+				"windows"	"282"
 				"windows64"	"282"
 			}
 			// sdkhooks Weapon_Equip
 			"WeaponEquip"
 			{
+				"windows"	"274"
 				"windows64"	"274"
 			}
-			// sdkgooks OnTakeDamage_Alive - 2
+			// sdkhooks OnTakeDamage_Alive - 2
 			"RemovePlayerItem"
 			{
+				"windows"	"284"
 				"windows64"	"284"
 			}
 			// Extinguish - 4
 			"Ignite"
 			{
+				"windows"	"220"
 				"windows64"	"220"
 			}
 			// xref "General.StopBurning", in bigger function (CEntityFlame::FlameThink):
@@ -130,11 +143,13 @@
 			//   }
 			"Extinguish"
 			{
+				"windows"	"224"
 				"windows64"	"224"
 			}
 			// STRINGS: "entindex", "base_player_teleported"
 			"Teleport"
 			{
+				"windows"	"115"
 				"windows64"	"115"
 			}
 			// xref "mp_allowspectators", in bigger function (CBasePlayer::ClientCommand):
@@ -148,6 +163,7 @@
 			//   }
 			"CommitSuicide"
 			{
+				"windows"	"462"
 				"windows64"	"462"
 			}
 			// xref "TRAIN(%s): Blocked by %s\n"
@@ -160,6 +176,7 @@
 			//   return;
 			"GetVelocity"
 			{
+				"windows"	"148"
 				"windows64"	"148"
 			}
 			// find test_dispatcheffect callback:
@@ -174,37 +191,44 @@
 			// v8 = (*(*v3 + 1112LL))(v3); // EyeAngles
 			"EyeAngles"
 			{
+				"windows"	"139"
 				"windows64"	"139"
 			}
 			// STRINGS: "unhandled input: (%s) -> (%s,%s)", "activator", "caller", "<null>"
 			"AcceptInput"
 			{
+				"windows"	"40"
 				"windows64"	"40"
 			}
 			// CBaseEntity::SetModel: STRING: "Setting CBaseEntity to non-brush model %s"
 			"SetEntityModel"
 			{
+				"windows"	"28"
 				"windows64"	"28"
 			}
 			// STRING: "RadialLinkController (%s) is far from its parent!"
 			"Activate"
 			{
+				"windows"	"37"
 				"windows64"	"37"
 			}
 			// STRING: "Client cmd out of sync (delta %i).\n"
 			"PlayerRunCmd"
 			{
+				"windows"	"439"
 				"windows64"	"439"
 			}
 			// xref "BaseCombatCharacter.AmmoPickup", smaller function is CBaseCombatCharacter::GiveAmmo
 			"GiveAmmo"
 			{
+				"windows"	"266"
 				"windows64"	"266"
 			}
 			// CAI_BaseNPC::PopulatePoseParameters + 1
 			// CAI_BaseNPC::PopulatePoseParameters: STRINGS: "aim_yaw", "move_yaw", "aim_pitch"
 			"GetAttachment"
 			{
+				"windows"	"216"
 				"windows64"	"216"
 			}
 		}

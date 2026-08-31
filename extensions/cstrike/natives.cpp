@@ -299,8 +299,13 @@ static cell_t CS_DropWeapon(IPluginContext *pContext, const cell_t *params)
 #if SOURCE_ENGINE == SE_CSSO
 		int params = 2;
 
+#if defined( PLATFORM_64BITS )
 		pass[1].flags = PASSFLAG_BYREF;
 		pass[1].type  = PassType_Basic;
+#else
+		pass[1].flags = PASSFLAG_BYVAL;
+		pass[1].type  = PassType_Object;
+#endif
 		pass[1].size  = sizeof(Vector);
 #else
 		int params = 3;
@@ -367,7 +372,11 @@ static cell_t CS_DropWeapon(IPluginContext *pContext, const cell_t *params)
 		AngleVectors(EyeAngles(pEntity), &vForward, NULL, NULL);
 		vTossPos = vTossPos + vForward * 64;
 	}
+#if defined( PLATFORM_64BITS )
 	ArgBuffer<CBaseEntity*, CBaseEntity*, Vector&> vstk(pEntity, pWeapon, vTossPos);
+#else
+	ArgBuffer<CBaseEntity*, CBaseEntity*, Vector> vstk(pEntity, pWeapon, vTossPos);
+#endif
 #endif
 
 	pWrapper->Execute(vstk, NULL);

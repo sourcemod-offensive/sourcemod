@@ -355,11 +355,15 @@ void CreateHashMaps()
 	}
 }
 #elif SOURCE_ENGINE == SE_CSSO
-uint8_t* GetAbsoluteAddress(uint8_t* pRelativeAddress, uintptr_t offsetRVA, uintptr_t offsetRIP)
+uint8_t* GetAbsoluteAddress(uint8_t* pAddress, uintptr_t offsetRVA, uintptr_t offsetRIP)
 {
-	const int64_t RVA = *reinterpret_cast<int32_t*>(pRelativeAddress + offsetRVA);
-	const auto RIP = pRelativeAddress + offsetRIP;
+#if defined( PLATFORM_64BITS )
+	const int64_t RVA = *reinterpret_cast<int32_t*>(pAddress + offsetRVA);
+	const auto RIP = pAddress + offsetRIP;
 	return RVA + RIP;
+#else
+	return *reinterpret_cast<uint8_t**>(pAddress);
+#endif
 }
 
 void CreateHashMaps()

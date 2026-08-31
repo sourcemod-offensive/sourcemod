@@ -242,7 +242,11 @@ DETOUR_DECL_MEMBER3(DetourCSWeaponDrop, void, CBaseEntity *, weapon, bool, bThro
 #elif SOURCE_ENGINE == SE_CSS
 DETOUR_DECL_MEMBER3(DetourCSWeaponDrop, void, CBaseEntity *, weapon, bool, bDropShield, bool, bThrowForward)
 #elif SOURCE_ENGINE == SE_CSSO
+#if defined( PLATFORM_64BITS )
 DETOUR_DECL_MEMBER2(DetourCSWeaponDrop, void, CBaseEntity *, weapon, Vector&, targetPos)
+#else
+DETOUR_DECL_MEMBER2(DetourCSWeaponDrop, void, CBaseEntity *, weapon, Vector, targetPos)
+#endif
 #endif
 {
 #if SOURCE_ENGINE == SE_CSSO
