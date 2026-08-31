@@ -660,6 +660,8 @@ const char *GetWeaponNameFromClassname(const char *weapon)
 	}
 }
 
+// CSSO note: this does not account for aliases in weapon_manifest.txt since the game
+// does not account for this either (e.g. you can't buy galil even if there's an alias galil=>galilar)
 const char *GetTranslatedWeaponAlias(const char *weapon)
 {
 #if SOURCE_ENGINE == SE_CSS
