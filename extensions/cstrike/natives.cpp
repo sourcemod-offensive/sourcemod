@@ -338,7 +338,11 @@ static cell_t CS_DropWeapon(IPluginContext *pContext, const cell_t *params)
 		return pContext->ThrowNativeError("Failed to retrieve entity %d server class!", params[2]);
 	}
 
+#if SOURCE_ENGINE == SE_CSSO
+	if (strcmp(pServerClass->m_pTable->GetName(), "DT_WeaponCSBase") != 0)
+#else
 	if (!UTIL_FindDataTable(pServerClass->m_pTable, "DT_WeaponCSBase", &spi, 0))
+#endif
 		return pContext->ThrowNativeError("Entity index %d is not a weapon", params[2]);
 
 	if (!gamehelpers->FindSendPropInfo("CBaseCombatWeapon", "m_hOwnerEntity", &spi))
@@ -994,6 +998,7 @@ static cell_t CS_GetClientAssists(IPluginContext *pContext, const cell_t *params
 
 static cell_t CS_UpdateClientModel(IPluginContext *pContext, const cell_t *params)
 {
+#if SOURCE_ENGINE != SE_CSSO
 	static ICallWrapper *pWrapper = NULL;
 	if (!pWrapper)
 	{
@@ -1010,6 +1015,9 @@ static cell_t CS_UpdateClientModel(IPluginContext *pContext, const cell_t *param
 	pWrapper->Execute(&pEntity, NULL);
 
 	return 1;
+#else
+	return pContext->ThrowNativeError("CS_UpdateClientModel is not supported on this game");
+#endif
 }
 
 static cell_t CS_ItemDefIndexToID(IPluginContext *pContext, const cell_t *params)
