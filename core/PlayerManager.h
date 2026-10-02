@@ -39,16 +39,14 @@
 #include <IPlayerHelpers.h>
 #include <IAdminSystem.h>
 #include <ITranslator.h>
-#include <sh_string.h>
-#include <sh_list.h>
-#include <sh_vector.h>
+#include <string>
+#include <list>
+#include <vector>
 #include <am-string.h>
 #include <am-deque.h>
 #include "ConVarManager.h"
 
 #include <steam/steamclientpublic.h>
-
-using namespace SourceHook;
 
 class IClient;
 
@@ -131,9 +129,9 @@ private:
 	bool m_IsInGame = false;
 	bool m_IsAuthorized = false;
 	bool m_bIsInKickQueue = false;
-	String m_Name;
-	String m_Ip;
-	String m_IpNoPort;
+	std::string m_Name;
+	std::string m_Ip;
+	std::string m_IpNoPort;
 	std::string m_AuthID;
 	std::string m_Steam2Id;
 	std::string m_Steam3Id;
@@ -142,7 +140,7 @@ private:
 	edict_t *m_pEdict = nullptr;
 	IPlayerInfo *m_Info = nullptr;
 	IClient *m_pIClient = nullptr;
-	String m_LastPassword;
+	std::string m_LastPassword;
 	bool m_bAdminCheckSignalled = false;
 	int m_iIndex;
 	unsigned int m_LangId = SOURCEMOD_LANGUAGE_ENGLISH;
@@ -194,6 +192,13 @@ public:
 #endif
 	void OnClientSettingsChanged(edict_t *pEntity);
 	//void OnClientSettingsChanged_Pre(edict_t *pEntity);
+#if SOURCE_ENGINE >= SE_ORANGEBOX && SOURCE_ENGINE != SE_MOCK
+#if SOURCE_ENGINE == SE_CSGO || SOURCE_ENGINE == SE_BLADE || SOURCE_ENGINE == SE_MCV
+	void OnNetworkIDValidated(const char *pszUserName, const char *pszNetworkID, CSteamID steamID);
+#else
+	void OnNetworkIDValidated(const char *pszUserName, const char *pszNetworkID);
+#endif
+#endif
 	void OnClientLanguageChanged(int client, unsigned int language);
 	void OnServerHibernationUpdate(bool bHibernating);
 	void OnClientPrintf(edict_t *pEdict, const char *szMsg);
@@ -245,7 +250,7 @@ private:
 	void OnServerActivate(edict_t *pEdictList, int edictCount, int clientMax);
 	void InvalidatePlayer(CPlayer *pPlayer);
 private:
-	List<IClientListener *> m_hooks;
+	std::list<IClientListener *> m_hooks;
 	IForward *m_clconnect;
 	IForward *m_clconnect_post;
 	IForward *m_cldisconnect;
@@ -266,7 +271,7 @@ private:
 	int m_PlayersSinceActive;
 	bool m_bServerActivated;
 	unsigned int *m_AuthQueue;
-	String m_PassInfoVar;
+	std::string m_PassInfoVar;
 	bool m_QueryLang;
 	bool m_bAuthstringValidation; // are we validating admins with steam before authorizing?
 	bool m_bIsListenServer;

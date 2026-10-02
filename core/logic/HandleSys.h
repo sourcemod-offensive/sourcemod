@@ -37,7 +37,7 @@
 #include <memory>
 
 #include <amtl/am-string.h>
-#include <amtl/am-function.h>
+#include <functional>
 #include <IHandleSys.h>
 #include <sm_namehashset.h>
 #include "common_logic.h"
@@ -123,7 +123,7 @@ struct QHandleType
 	}
 };
 
-typedef ke::Function<void(const char *)> HandleReporter;
+typedef std::function<void(const char *)> HandleReporter;
 
 class HandleSystem : 
 	public IHandleSys
@@ -242,28 +242,5 @@ private:
 };
 
 extern HandleSystem g_HandleSys;
-
-struct AutoHandleRooter
-{
-public:
-	AutoHandleRooter(Handle_t hndl)
-	{
-		if (hndl != BAD_HANDLE)
-			this->hndl = g_HandleSys.FastCloneHandle(hndl);
-		else
-			this->hndl = BAD_HANDLE;
-	}
-
-	~AutoHandleRooter()
-	{
-		if (hndl != BAD_HANDLE)
-		{
-			HandleSecurity sec(g_pCoreIdent, g_pCoreIdent);
-			g_HandleSys.FreeHandle(hndl, &sec);
-		}
-	}
-private:
-	Handle_t hndl;
-};
 
 #endif //_INCLUDE_SOURCEMOD_HANDLESYSTEM_H_

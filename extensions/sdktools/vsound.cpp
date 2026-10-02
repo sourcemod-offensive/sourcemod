@@ -142,12 +142,11 @@ void SoundHooks::Shutdown()
 
 void SoundHooks::OnPluginUnloaded(IPlugin *plugin)
 {
-	SoundHookIter iter;
 	IPluginContext *pContext = plugin->GetBaseContext();
 
 	if (m_AmbientCount)
 	{
-		for (iter=m_AmbientFuncs.begin(); iter!=m_AmbientFuncs.end(); )
+		for (auto iter=m_AmbientFuncs.begin(); iter!=m_AmbientFuncs.end(); )
 		{
 			if ((*iter)->GetParentContext() == pContext)
 			{
@@ -162,7 +161,7 @@ void SoundHooks::OnPluginUnloaded(IPlugin *plugin)
 	}
 	if (m_NormalCount)
 	{
-		for (iter=m_NormalFuncs.begin(); iter!=m_NormalFuncs.end(); )
+		for (auto iter=m_NormalFuncs.begin(); iter!=m_NormalFuncs.end(); )
 		{
 			if ((*iter)->GetParentContext() == pContext)
 			{
@@ -193,10 +192,10 @@ void SoundHooks::AddHook(int type, IPluginFunction *pFunc)
 
 bool SoundHooks::RemoveHook(int type, IPluginFunction *pFunc)
 {
-	SoundHookIter iter;
 	if (type == NORMAL_SOUND_HOOK)
 	{
-		if ((iter=m_NormalFuncs.find(pFunc)) != m_NormalFuncs.end())
+		auto iter = std::find(m_NormalFuncs.begin(), m_NormalFuncs.end(), pFunc);
+		if (iter != m_NormalFuncs.end())
 		{
 			m_NormalFuncs.erase(iter);
 			_DecRefCounter(NORMAL_SOUND_HOOK);
@@ -209,7 +208,8 @@ bool SoundHooks::RemoveHook(int type, IPluginFunction *pFunc)
 	}
 	else if (type == AMBIENT_SOUND_HOOK)
 	{
-		if ((iter=m_AmbientFuncs.find(pFunc)) != m_AmbientFuncs.end())
+		auto iter = std::find(m_AmbientFuncs.begin(), m_AmbientFuncs.end(), pFunc);
+		if (iter != m_AmbientFuncs.end())
 		{
 			m_AmbientFuncs.erase(iter);
 			_DecRefCounter(AMBIENT_SOUND_HOOK);
@@ -227,14 +227,13 @@ bool SoundHooks::RemoveHook(int type, IPluginFunction *pFunc)
 void SoundHooks::OnEmitAmbientSound(int entindex, const Vector &pos, const char *samp, float vol, 
 									soundlevel_t soundlevel, int fFlags, int pitch, float delay)
 {
-	SoundHookIter iter;
 	IPluginFunction *pFunc;
 	cell_t vec[3] = {sp_ftoc(pos.x), sp_ftoc(pos.y), sp_ftoc(pos.z)};
 	cell_t res = static_cast<ResultType>(Pl_Continue);
 	char buffer[PLATFORM_MAX_PATH];
 	ke::SafeStrcpy(buffer, sizeof(buffer), samp);
 
-	for (iter=m_AmbientFuncs.begin(); iter!=m_AmbientFuncs.end(); iter++)
+	for (auto iter=m_AmbientFuncs.begin(); iter!=m_AmbientFuncs.end(); iter++)
 	{
 		pFunc = (*iter);
 		pFunc->PushStringEx(buffer, sizeof(buffer), SM_PARAM_STRING_COPY, SM_PARAM_COPYBACK);
@@ -348,7 +347,6 @@ void SoundHooks::OnEmitSound(IRecipientFilter &filter, int iEntIndex, int iChann
 							 float soundtime, int speakerentity)
 #endif
 {
-	SoundHookIter iter;
 	IPluginFunction *pFunc;
 	cell_t res = static_cast<ResultType>(Pl_Continue);
 	char buffer[PLATFORM_MAX_PATH];
@@ -363,7 +361,7 @@ void SoundHooks::OnEmitSound(IRecipientFilter &filter, int iEntIndex, int iChann
 	int nSeed = 0;
 #endif
 
-	for (iter=m_NormalFuncs.begin(); iter!=m_NormalFuncs.end(); iter++)
+	for (auto iter=m_NormalFuncs.begin(); iter!=m_NormalFuncs.end(); iter++)
 	{
 		int players[SM_MAXPLAYERS], size;
 		size = _FillInPlayers(players, &filter);
@@ -524,7 +522,6 @@ void SoundHooks::OnEmitSound2(IRecipientFilter &filter, int iEntIndex, int iChan
 							 float soundtime, int speakerentity)
 #endif
 {
-	SoundHookIter iter;
 	IPluginFunction *pFunc;
 	cell_t res = static_cast<ResultType>(Pl_Continue);
 	cell_t sndlevel = static_cast<cell_t>(ATTN_TO_SNDLVL(flAttenuation));
@@ -540,7 +537,7 @@ void SoundHooks::OnEmitSound2(IRecipientFilter &filter, int iEntIndex, int iChan
 	int nSeed = 0;
 #endif
 
-	for (iter=m_NormalFuncs.begin(); iter!=m_NormalFuncs.end(); iter++)
+	for (auto iter=m_NormalFuncs.begin(); iter!=m_NormalFuncs.end(); iter++)
 	{
 		int players[SM_MAXPLAYERS], size;
 		size = _FillInPlayers(players, &filter);

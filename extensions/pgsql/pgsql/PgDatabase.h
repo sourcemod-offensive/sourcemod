@@ -81,10 +81,11 @@ private:
 
 	/* ---------- */
 	DatabaseInfo m_Info;
-	String m_Host;
-	String m_Database;
-	String m_User;
-	String m_Pass;
+	std::string m_Host;
+	std::string m_Database;
+	std::string m_User;
+	std::string m_Pass;
+	std::string m_Schema;
 	bool m_bPersistent;
 };
 

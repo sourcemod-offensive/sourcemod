@@ -30,7 +30,7 @@
  */
 
 #include <stdlib.h>
-#include <sh_string.h>
+#include <string>
 #include "extension.h"
 #include "vcallbuilder.h"
 #include "vnatives.h"
@@ -43,8 +43,8 @@
 #include "am-string.h"
 #include <sm_argbuffer.h>
 
-SourceHook::List<ValveCall *> g_RegCalls;
-SourceHook::List<ICallWrapper *> g_CallWraps;
+std::list<ValveCall *> g_RegCalls;
+std::list<ICallWrapper *> g_CallWraps;
 
 #define ENTINDEX_TO_CBASEENTITY(ref, buffer) \
 	buffer = gamehelpers->ReferenceToEntity(ref); \
@@ -626,12 +626,31 @@ static cell_t SetClientViewEntity(IPluginContext *pContext, const cell_t *params
 		return pContext->ThrowNativeError("Entity %d is not valid", params[2]);
 	}
 
+	CBaseEntity *pClientEntity = player->GetEdict()->GetUnknown()->GetBaseEntity();
+	sm_sendprop_info_t info;
+	ServerClass *pServerClass = gamehelpers->FindEntityServerClass(pClientEntity);
+	if (pServerClass && gamehelpers->FindSendPropInfo(pServerClass->GetName(), "m_hViewEntity", &info))
+	{
+		CBaseHandle &hViewEntity = *(CBaseHandle *)((char *)pClientEntity + info.actual_offset);
+		gamehelpers->SetHandleEntity(hViewEntity, pEdict);
+		gamehelpers->SetEdictStateChanged(player->GetEdict(), info.actual_offset);
+	}
+	else
+	{
+		sm_datatable_info_t info;
+		if (gamehelpers->FindDataMapInfo(gamehelpers->GetDataMap(pClientEntity), "m_hViewEntity", &info))
+		{
+			CBaseHandle &hViewEntity = *(CBaseHandle *)((char *)pClientEntity + info.actual_offset);
+			gamehelpers->SetHandleEntity(hViewEntity, pEdict);
+		}
+	}
+
 	engine->SetView(player->GetEdict(), pEdict);
 
 	return 1;
 }
 
-static SourceHook::String *g_lightstyle[MAX_LIGHTSTYLES] = {NULL};
+static std::string *g_lightstyle[MAX_LIGHTSTYLES] = {NULL};
 static cell_t SetLightStyle(IPluginContext *pContext, const cell_t *params)
 {
 	int style = params[1];
@@ -647,7 +666,7 @@ static cell_t SetLightStyle(IPluginContext *pContext, const cell_t *params)
 		 * this or not on shutdown, but for ~4K of memory MAX, it doesn't seem worth it yet.
 		 * So, it's a :TODO:!
 		 */
-		g_lightstyle[style] = new SourceHook::String();
+		g_lightstyle[style] = new std::string();
 	}
 
 	char *str;

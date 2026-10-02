@@ -41,10 +41,10 @@
 #include <IPluginSys.h>
 #include <IHandleSys.h>
 #include <IForwardSys.h>
-#include <sh_list.h>
-#include <sh_stack.h>
-#include <sh_vector.h>
-#include <sh_string.h>
+#include <list>
+#include <stack>
+#include <vector>
+#include <string>
 #include "common_logic.h"
 #include <IRootConsoleMenu.h>
 #include <sm_hashmap.h>
@@ -56,12 +56,10 @@
 #include "PhraseCollection.h"
 #include <am-string.h>
 #include <bridge/include/IScriptManager.h>
-#include <am-function.h>
+#include <functional>
 #include <ReentrantList.h>
 
 class CPlayer;
-
-using namespace SourceHook;
 
 enum LoadRes
 {
@@ -125,16 +123,16 @@ public:
 	}
 
 	struct ExtVar {
-		char *name;
-		char *file;
+		std::string name;
+		std::string file;
 		bool autoload;
 		bool required;
 	};
 
-	typedef ke::Function<bool(const sp_pubvar_t *, const ExtVar& ext)> ExtVarCallback;
+	typedef std::function<bool(const char *pubvar_name, const ExtVar& ext)> ExtVarCallback;
 	bool ForEachExtVar(const ExtVarCallback& callback);
 
-	void ForEachLibrary(ke::Function<void(const char *)> callback);
+	void ForEachLibrary(std::function<void(const char *)> callback);
 public:
 	/**
 	 * Creates a plugin object with default values.
@@ -195,7 +193,7 @@ public:
 		m_Libraries.push_back(name);
 	}
 	inline bool HasLibrary(const char *name) {
-		return m_Libraries.find(name) != m_Libraries.end();
+		return std::find(m_Libraries.begin(), m_Libraries.end(), name) != m_Libraries.end();
 	}
 	void LibraryActions(LibraryAction action);
 	void SyncMaxClients(int max_clients);
@@ -217,7 +215,7 @@ public:
 	}
 
 	void AddRequiredLib(const char *name);
-	bool ForEachRequiredLib(ke::Function<bool(const char *)> callback);
+	bool ForEachRequiredLib(std::function<bool(const char *)> callback);
 
 	bool HasMissingFakeNatives() const {
 		return m_FakeNativesMissing;
@@ -274,13 +272,13 @@ private:
 	IPluginContext *m_pContext;
 	sp_pubvar_t *m_MaxClientsVar;
 	StringHashMap<void *> m_Props;
-	CVector<AutoConfig *> m_configs;
-	List<String> m_Libraries;
+	std::vector<AutoConfig *> m_configs;
+	std::list<std::string> m_Libraries;
 	bool m_bGotAllLoaded;
 	int m_FileVersion;
 
 	// Information that survives past eviction.
-	List<String> m_RequiredLibs;
+	std::list<std::string> m_RequiredLibs;
 	IdentityToken_t *m_ident;
 	time_t m_LastFileModTime;
 	Handle_t m_handle;
@@ -348,8 +346,8 @@ public: //IScriptManager
 	SMPlugin *FindPluginByHandle(Handle_t hndl, HandleError *errp) {
 		return static_cast<SMPlugin *>(PluginFromHandle(hndl, errp));
 	}
-	const CVector<SMPlugin *> *ListPlugins();
-	void FreePluginList(const CVector<SMPlugin *> *plugins);
+	const std::vector<SMPlugin *> *ListPlugins();
+	void FreePluginList(const std::vector<SMPlugin *> *plugins);
 
 public: //SMGlobalClass
 	void OnSourceModAllInitialized();
@@ -428,7 +426,7 @@ public:
 
 	void _SetPauseState(CPlugin *pPlugin, bool pause);
 
-	void ForEachPlugin(ke::Function<void(CPlugin *)> callback);
+	void ForEachPlugin(std::function<void(CPlugin *)> callback);
 private:
 	LoadRes LoadPlugin(CPlugin **pPlugin, const char *path, bool debug, PluginType type);
 
@@ -506,7 +504,7 @@ private:
 	IdentityToken_t *m_MyIdent;
 
 	/* Dynamic native stuff */
-	List<FakeNative *> m_Natives;
+	std::list<FakeNative *> m_Natives;
 
 	bool m_LoadingLocked;
 	

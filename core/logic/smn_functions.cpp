@@ -91,12 +91,6 @@ public:
 } g_ForwardNativeHelpers;
 
 
-/* Turn a public index into a function ID */
-inline funcid_t PublicIndexToFuncId(uint32_t idx)
-{
-	return (idx << 1) | (1 << 0);
-}
-
 /* Reset global function/forward call variables */
 inline void ResetCall()
 {
@@ -129,14 +123,19 @@ static cell_t sm_GetFunctionByName(IPluginContext *pContext, const cell_t *param
 	pContext->LocalToString(params[2], &name);
 
 	/* Get public function index */
-	if (pContext->GetBaseRuntime()->FindPublicByName(name, &idx) == SP_ERROR_NOT_FOUND)
+	if (pPlugin->GetBaseContext()->GetBaseRuntime()->FindPublicByName(name, &idx) == SP_ERROR_NOT_FOUND)
 	{
 		/* Return INVALID_FUNCTION if not found */
 		return pContext->GetNullFunctionValue();
 	}
 
+	/* Turn a public index into a function ID */
+	sp_public_t *func;
+	if (pPlugin->GetBaseContext()->GetBaseRuntime()->GetPublicByIndex(idx, &func) != SP_ERROR_NONE)
+		return pContext->GetNullFunctionValue();
+
 	/* Return function ID */
-	return PublicIndexToFuncId(idx);
+	return func->funcid;
 }
 
 static cell_t sm_CreateGlobalForward(IPluginContext *pContext, const cell_t *params)
@@ -558,12 +557,12 @@ static cell_t sm_CallFinish(IPluginContext *pContext, const cell_t *params)
 
 	auto local_args = sArgs;
 
-	// Note: Execute() swallows exceptions, so this is okay.
+	// Note: ExceptionHandler and Execute() swallow exceptions, so this is okay.
 	if (s_pFunction)
 	{
 		IPluginFunction *pFunction = s_pFunction;
 		ResetCall();
-		DetectExceptions eh(pContext);
+		ExceptionHandler eh(pContext);
 		if (!pFunction->Invoke(local_args, result))
 			return eh.Code();
 	} else {
