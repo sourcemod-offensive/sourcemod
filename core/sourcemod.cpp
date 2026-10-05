@@ -315,9 +315,7 @@ static bool MapEntitiesFromString(KeyValues *pKVMapEntities, char const *pMapEnt
 			if (token == "\0") {
 				break;
 			} else {
-				return nullptr /* EntityLumpParseResult {
-					Status_UnexpectedChar, mapEntities.tellg()
-				} */;
+				return false;
 			}
 		}
 
@@ -335,16 +333,12 @@ static bool MapEntitiesFromString(KeyValues *pKVMapEntities, char const *pMapEnt
 			std::string key, value;
 
 			if (mapEntities.peek() != '"') {
-				return nullptr /* EntityLumpParseResult {
-					Status_UnexpectedChar, mapEntities.tellg()
-				} */;
+				return false;
 			}
 			mapEntities >> quoted(key) >> std::ws;
 
 			if (mapEntities.peek() != '"') {
-				return nullptr /* EntityLumpParseResult {
-					Status_UnexpectedChar, mapEntities.tellg()
-				} */;
+				return false;
 			}
 			mapEntities >> quoted(value) >> std::ws;
 
@@ -357,7 +351,7 @@ static bool MapEntitiesFromString(KeyValues *pKVMapEntities, char const *pMapEnt
 		mapEntities.get();
 	}
 
-	return pKVMapEntities;
+	return true;
 }
 #endif
 
