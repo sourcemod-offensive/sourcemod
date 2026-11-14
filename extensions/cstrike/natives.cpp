@@ -122,6 +122,38 @@ bool UTIL_FindDataTable(SendTable *pTable, const char *name, sm_sendprop_info_t 
 	return false;
 }
 
+bool UTIL_ContainsDataTable(SendTable *pTable, const char *name)
+{
+	const char *pname = pTable->GetName();
+	int props = pTable->GetNumProps();
+	SendProp *prop;
+	SendTable *table;
+
+	if (pname && strcmp(name, pname) == 0)
+		return true;
+
+	for (int i = 0; i < props; i++)
+	{
+		prop = pTable->GetProp(i);
+
+		if ((table = prop->GetDataTable()) != NULL)
+		{
+			pname = table->GetName();
+			if (pname && strcmp(name, pname) == 0)
+			{
+				return true;
+			}
+
+			if (UTIL_ContainsDataTable(table, name))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 //Taken From Sourcemod Core
 unsigned int strncopy(char *dest, const char *src, size_t count)
 {
@@ -343,11 +375,7 @@ static cell_t CS_DropWeapon(IPluginContext *pContext, const cell_t *params)
 		return pContext->ThrowNativeError("Failed to retrieve entity %d server class!", params[2]);
 	}
 
-#if SOURCE_ENGINE == SE_CSSO
-	if (strcmp(pServerClass->m_pTable->GetName(), "DT_WeaponCSBase") != 0)
-#else
-	if (!UTIL_FindDataTable(pServerClass->m_pTable, "DT_WeaponCSBase", &spi, 0))
-#endif
+	if (!UTIL_ContainsDataTable(pServerClass->m_pTable, "DT_WeaponCSBase"))
 		return pContext->ThrowNativeError("Entity index %d is not a weapon", params[2]);
 
 	if (!gamehelpers->FindSendPropInfo("CBaseCombatWeapon", "m_hOwnerEntity", &spi))
