@@ -10,6 +10,6 @@
 	path = hl2sdk-manifests
 	url = https://github.com/cafeed28/hl2sdk-manifests
 	branch = csso
-[submodule "public/safetyhook"]
-	path = public/safetyhook
-	url = https://github.com/alliedmodders/safetyhook
+[submodule "core/logic/libaddrz"]
+	path = core/logic/libaddrz
+	url = https://github.com/dvander/libaddrz.git

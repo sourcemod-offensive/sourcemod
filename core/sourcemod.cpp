@@ -53,12 +53,7 @@
 #include <sstream>
 #endif
 
-SH_DECL_HOOK6(IServerGameDLL, LevelInit, SH_NOATTRIB, false, bool, const char *, const char *, const char *, const char *, bool, bool);
-SH_DECL_HOOK0_void(IServerGameDLL, LevelShutdown, SH_NOATTRIB, false);
-SH_DECL_HOOK1_void(IServerGameDLL, GameFrame, SH_NOATTRIB, false, bool);
-SH_DECL_HOOK1_void(IServerGameDLL, Think, SH_NOATTRIB, false, bool);
-SH_DECL_HOOK1_void(IVEngineServer, ServerCommand, SH_NOATTRIB, false, const char *);
-SH_DECL_HOOK0(IVEngineServer, GetMapEntitiesString, SH_NOATTRIB, 0, const char *);
+/**/
 
 SourceModBase g_SourceMod;
 
@@ -80,11 +75,30 @@ ConVar sm_basepath("sm_basepath", "addons\\sourcemod", 0, "SourceMod base path (
 ConVar sm_basepath("sm_basepath", "addons/sourcemod", 0, "SourceMod base path (set via command line)");
 #endif
 
-SourceModBase::SourceModBase()
+SourceModBase::SourceModBase() :
+	m_HookLevelInit(&IServerGameDLL::LevelInit, this, &SourceModBase::Hook_LevelInit, nullptr),
+	m_HookLevelShutdown(&IServerGameDLL::LevelShutdown, this, &SourceModBase::Hook_LevelShutdown, nullptr),
+	m_HookGameFrame(&IServerGameDLL::GameFrame, this, &SourceModBase::Hook_GameFrame, nullptr),
+	m_HookThink(&IServerGameDLL::Think, this, &SourceModBase::Hook_Think, nullptr),
+	m_HookGetMapEntitiesString(&IVEngineServer::GetMapEntitiesString, this, &SourceModBase::Hook_GetMapEntitiesString, nullptr)
 {
 	m_IsMapLoading = false;
 	m_ExecPluginReload = false;
 	m_GotBasePath = false;
+}
+
+KHook::Return<void> SourceModBase::Hook_GameFrame(IServerGameDLL*, bool simulating)
+{
+	g_Timers.GameFrame(simulating);
+
+	return { KHook::Action::Ignore };
+}
+
+KHook::Return<void> SourceModBase::Hook_Think(IServerGameDLL*, bool simulating)
+{
+	logicore.callbacks->OnThink(simulating);
+
+	return { KHook::Action::Ignore };
 }
 
 ConfigResult SourceModBase::OnSourceModConfigChanged(const char *key, 
@@ -201,8 +215,8 @@ bool SourceModBase::InitializeSourceMod(char *error, size_t maxlength, bool late
 	sSourceModInitialized = true;
 
 	/* Hook this now so we can detect startup without calling StartSourceMod() */
-	SH_ADD_HOOK(IServerGameDLL, LevelInit, gamedll, SH_MEMBER(this, &SourceModBase::LevelInit), false);
-	SH_ADD_HOOK(IVEngineServer, GetMapEntitiesString, engine, SH_MEMBER(this, &SourceModBase::GetMapEntitiesString), false);
+	m_HookLevelInit.Add(gamedll);
+	m_HookGetMapEntitiesString.Add(engine);
 
 	/* Only load if we're not late */
 	if (!late)
@@ -215,11 +229,8 @@ bool SourceModBase::InitializeSourceMod(char *error, size_t maxlength, bool late
 
 void SourceModBase::StartSourceMod(bool late)
 {
-	SH_ADD_HOOK(IServerGameDLL, LevelShutdown, gamedll, SH_MEMBER(this, &SourceModBase::LevelShutdown), false);
-	SH_ADD_HOOK(IServerGameDLL, GameFrame, gamedll, SH_MEMBER(&g_Timers, &TimerSystem::GameFrame), false);
-
-	enginePatch = SH_GET_CALLCLASS(engine);
-	gamedllPatch = SH_GET_CALLCLASS(gamedll);
+	m_HookLevelShutdown.Add(gamedll);
+	m_HookGameFrame.Add(gamedll);
 
 	/* Initialize CoreConfig to get the SourceMod base path properly - this parses core.cfg */
 	g_CoreConfig.Initialize();
@@ -275,8 +286,7 @@ void SourceModBase::StartSourceMod(bool late)
 	{
 		extsys->LoadAutoExtension("updater.ext." PLATFORM_LIB_EXT);
 	}
-
-	SH_ADD_HOOK(IServerGameDLL, Think, gamedll, SH_MEMBER(logicore.callbacks, &IProviderCallbacks::OnThink), false);
+	m_HookThink.Add(gamedll);
 }
 
 #if SOURCE_ENGINE == SE_CSSO
@@ -361,7 +371,7 @@ static KeyValues* s_pKVMapEntities = NULL;
 #endif
 
 static bool g_LevelEndBarrier = false;
-bool SourceModBase::LevelInit(char const *pMapName, char const *pMapEntities, char const *pOldLevel, char const *pLandmarkName, bool loadGame, bool background)
+KHook::Return<bool> SourceModBase::Hook_LevelInit(IServerGameDLL* this_ptr, char const *pMapName, char const *pMapEntities, char const *pOldLevel, char const *pLandmarkName, bool loadGame, bool background)
 {
 #if SOURCE_ENGINE == SE_CSSO
 #undef pMapEntities
@@ -428,7 +438,7 @@ bool SourceModBase::LevelInit(char const *pMapName, char const *pMapEntities, ch
 	if (!success)
 	{
 		logger->LogError("Map entity lump parsing for %s failed with error code %d on position %d", pMapName, parseError, position);
-		RETURN_META_VALUE(MRES_IGNORED, true);
+		return { KHook::Action::Ignore };
 	}
 
 	pMapEntities = logicore.GetEntityLumpString();
@@ -439,10 +449,10 @@ bool SourceModBase::LevelInit(char const *pMapName, char const *pMapEntities, ch
 	pMapEntities = reinterpret_cast<char const *>(s_pKVMapEntities);
 #endif
 
-	RETURN_META_VALUE_NEWPARAMS(MRES_HANDLED, true, &IServerGameDLL::LevelInit, (pMapName, pMapEntities, pOldLevel, pLandmarkName, loadGame, background));
+	return KHook::Recall(&IServerGameDLL::LevelInit, KHook::Return<bool>{KHook::Action::Override, true}, this_ptr, pMapName, pMapEntities, pOldLevel, pLandmarkName, loadGame, background);
 }
 
-const char *SourceModBase::GetMapEntitiesString()
+KHook::Return<const char*> SourceModBase::Hook_GetMapEntitiesString(IVEngineServer*)
 {
 	const char *pNewMapEntities = logicore.GetEntityLumpString();
 	if (pNewMapEntities != nullptr)
@@ -452,12 +462,12 @@ const char *SourceModBase::GetMapEntitiesString()
 		MapEntitiesFromString(s_pKVMapEntities, pNewMapEntities);
 		pNewMapEntities = reinterpret_cast<char const *>(s_pKVMapEntities);
 #endif
-		RETURN_META_VALUE(MRES_SUPERCEDE, pNewMapEntities);
+		return { KHook::Action::Supersede, pNewMapEntities };
 	}
-	RETURN_META_VALUE(MRES_IGNORED, NULL);
+	return { KHook::Action::Ignore };
 }
 
-void SourceModBase::LevelShutdown()
+KHook::Return<void> SourceModBase::Hook_LevelShutdown(IServerGameDLL*)
 {
 	if (g_LevelEndBarrier)
 	{
@@ -484,6 +494,8 @@ void SourceModBase::LevelShutdown()
 		scripts->RefreshAll();
 		m_ExecPluginReload = false;
 	}
+
+	return { KHook::Action::Ignore };
 }
 
 bool SourceModBase::IsMapLoading() const
@@ -568,13 +580,13 @@ void SourceModBase::CloseSourceMod()
 	if (!sSourceModInitialized)
 		return;
 
-	SH_REMOVE_HOOK(IServerGameDLL, LevelInit, gamedll, SH_MEMBER(this, &SourceModBase::LevelInit), false);
-	SH_REMOVE_HOOK(IVEngineServer, GetMapEntitiesString, engine, SH_MEMBER(this, &SourceModBase::GetMapEntitiesString), false);
+	m_HookLevelInit.Remove(gamedll);
+	m_HookGetMapEntitiesString.Remove(engine);
 
 	if (g_Loaded)
 	{
 		/* Force a level end */
-		LevelShutdown();
+		Hook_LevelShutdown(gamedll);
 		ShutdownServices();
 	}
 
@@ -622,21 +634,9 @@ void SourceModBase::ShutdownServices()
 		pBase = pBase->m_pGlobalClassNext;
 	}
 
-	if (enginePatch)
-	{
-		SH_RELEASE_CALLCLASS(enginePatch);
-		enginePatch = NULL;
-	}
-
-	if (gamedllPatch)
-	{
-		SH_RELEASE_CALLCLASS(gamedllPatch);
-		gamedllPatch = NULL;
-	}
-
-	SH_REMOVE_HOOK(IServerGameDLL, LevelShutdown, gamedll, SH_MEMBER(this, &SourceModBase::LevelShutdown), false);
-	SH_REMOVE_HOOK(IServerGameDLL, GameFrame, gamedll, SH_MEMBER(&g_Timers, &TimerSystem::GameFrame), false);
-	SH_REMOVE_HOOK(IServerGameDLL, Think, gamedll, SH_MEMBER(logicore.callbacks, &IProviderCallbacks::OnThink), false);
+	m_HookLevelShutdown.Remove(gamedll);
+	m_HookGameFrame.Remove(gamedll);
+	m_HookThink.Remove(gamedll);
 }
 
 void SourceModBase::LogMessage(IExtension *pExt, const char *format, ...)
@@ -827,9 +827,7 @@ int SourceModBase::GetPluginId()
 
 int SourceModBase::GetShApiVersion()
 {
-	int api, impl;
-	g_SMAPI->GetShVersions(api, impl);
-
+	int api = 999, impl = 999;
 	return api;
 }
 
