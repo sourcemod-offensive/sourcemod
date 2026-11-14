@@ -40,10 +40,9 @@ PgDriver::PgDriver()
 	m_Handle = BAD_HANDLE;
 }
 
-void CloseDBList(List<PgDatabase *> &l)
+void CloseDBList(std::list<PgDatabase *> &l)
 {
-	List<PgDatabase *>::iterator iter;
-	for (iter=l.begin(); iter!=l.end(); iter++)
+	for (auto iter=l.begin(); iter!=l.end(); iter++)
 	{
 		PgDatabase *db = (*iter);
 		while (!db->Close())
@@ -56,7 +55,6 @@ void CloseDBList(List<PgDatabase *> &l)
 
 void PgDriver::Shutdown()
 {
-	List<PgDatabase *>::iterator iter;
 	CloseDBList(m_PermDbs);
 
 	if (m_Handle != BAD_HANDLE)
@@ -93,12 +91,14 @@ const char *PgDriver::GetProductName()
 
 PGconn *Connect(const DatabaseInfo *info, char *error, size_t maxlength)
 {
-	const char *keywords[7];
-	const char *values[7];
+	const char *keywords[8];
+	const char *values[8];
 	unsigned int count = 0;
 
 	char port[16];
 	char timeout[16];
+	char options[1024];
+	const char *searchPath = info->dbiVersion >= 10 ? info->schemaName : NULL;
 
 	keywords[count] = "host";
 	values[count++] = info->host;
@@ -129,6 +129,14 @@ PGconn *Connect(const DatabaseInfo *info, char *error, size_t maxlength)
 		snprintf(timeout, sizeof(timeout), "%u", info->maxTimeout);
 		keywords[count] = "connect_timeout";
 		values[count++] = timeout;
+	}
+
+	if (searchPath && searchPath[0] != '\0')
+	{
+		// libpq splits options on spaces; schema names containing spaces need escaping.
+		snprintf(options, sizeof(options), "-c search_path=%s", searchPath);
+		keywords[count] = "options";
+		values[count++] = options;
 	}
 
 	keywords[count] = NULL;
@@ -181,8 +189,7 @@ IDatabase *PgDriver::Connect(const DatabaseInfo *info, bool persistent, char *er
 	if (persistent)
 	{
 		/* Try to find a matching persistent connection */
-		List<PgDatabase *>::iterator iter;
-		for (iter=m_PermDbs.begin();
+		for (auto iter=m_PermDbs.begin();
 			 iter!=m_PermDbs.end();
 			 iter++)
 		{
@@ -192,6 +199,7 @@ IDatabase *PgDriver::Connect(const DatabaseInfo *info, bool persistent, char *er
 				&& CompareField(info->user, other.user)
 				&& CompareField(info->pass, other.pass)
 				&& CompareField(info->database, other.database)
+				&& CompareField(info->dbiVersion >= 10 ? info->schemaName : NULL, other.schemaName)
 				&& (info->port == other.port))
 			{
 				db->IncReferenceCount();

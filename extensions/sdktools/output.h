@@ -34,8 +34,8 @@
 
 #include <jit/jit_helpers.h>
 #include <jit/x86/x86_macros.h>
-#include "sh_list.h"
-#include "sh_stack.h"
+#include <list>
+#include <stack>
 #include "sm_trie_tpl.h"
 #include "CDetour/detours.h"
 
@@ -62,7 +62,7 @@ struct omg_hooks
  */
 struct OutputNameStruct
 {
-	SourceHook::List<omg_hooks *> hooks;
+	std::list<omg_hooks *> hooks;
 	char Name[50];
 };
 
@@ -98,6 +98,7 @@ public:
 	bool FireEventDetour(void *pOutput, CBaseEntity *pActivator, CBaseEntity *pCaller, float fDelay);
 
 	void OnPluginDestroyed(IPlugin *plugin);
+	void OnMapEnd();
 
 	OutputNameStruct *FindOutputPointer(const char *classname, const char *outputname, bool create);
 
@@ -124,7 +125,7 @@ private:
 	// Maps classname to a ClassNameStruct
 	IBasicTrie *ClassNames;
 
-	SourceHook::CStack<omg_hooks *> FreeHooks; //Stores hook pointers to avoid calls to new
+	std::stack<omg_hooks *> FreeHooks; //Stores hook pointers to avoid calls to new
 
 	int HookCount;
 

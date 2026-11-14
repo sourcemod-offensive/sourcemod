@@ -392,7 +392,11 @@ stock void PrintToChatAll(const char[] format, any ...)
 		if (IsClientInGame(i))
 		{
 			SetGlobalTransTarget(i);
+#if defined __sourcepawn2
+			FormatEx(buffer, sizeof(buffer), format, ...);
+#else
 			VFormat(buffer, sizeof(buffer), format, 2);
+#endif
 			PrintToChat(i, "%s", buffer);
 		}
 	}
@@ -423,7 +427,11 @@ stock void PrintCenterTextAll(const char[] format, any ...)
 		if (IsClientInGame(i))
 		{
 			SetGlobalTransTarget(i);
+#if defined __sourcepawn2
+			FormatEx(buffer, sizeof(buffer), format, ...);
+#else
 			VFormat(buffer, sizeof(buffer), format, 2);
+#endif
 			PrintCenterText(i, "%s", buffer);
 		}
 	}
@@ -454,7 +462,11 @@ stock void PrintHintTextToAll(const char[] format, any ...)
 		if (IsClientInGame(i))
 		{
 			SetGlobalTransTarget(i);
+#if defined __sourcepawn2
+			FormatEx(buffer, sizeof(buffer), format, ...);
+#else
 			VFormat(buffer, sizeof(buffer), format, 2);
+#endif
 			PrintHintText(i, "%s", buffer);
 		}
 	}
