@@ -34,11 +34,9 @@
 #include <IMemoryUtils.h>
 #include <am-hashmap.h>
 #include <memory>
+#include <vector>
 #if defined PLATFORM_LINUX || defined PLATFORM_APPLE
-#include <sh_vector.h>
 #include "sm_symtable.h"
-
-using namespace SourceHook;
 #endif
 
 using namespace SourceMod;
@@ -49,9 +47,18 @@ using namespace SourceMod;
 
 struct DynLibInfo
 {
-	void *baseAddress;
-	size_t memorySize;
+	void *baseAddress = nullptr;
+	size_t memorySize = 0;
 	std::unique_ptr<char[]> originalCopy;
+#ifdef PLATFORM_LINUX
+	struct Segment
+	{
+		size_t memoryOffset = 0;
+		size_t memorySize = 0;
+		std::unique_ptr<char[]> originalCopy;
+	};
+	std::vector<Segment> segments;
+#endif
 };
 
 #if defined PLATFORM_LINUX || defined PLATFORM_APPLE
@@ -79,7 +86,7 @@ public:
 	const DynLibInfo *GetLibraryInfo(const void *libPtr);
 #if defined PLATFORM_LINUX || defined PLATFORM_APPLE
 private:
-	CVector<LibSymbolTable *> m_SymTables;
+	std::vector<LibSymbolTable *> m_SymTables;
 #ifdef PLATFORM_APPLE
 	struct dyld_all_image_infos *m_ImageList;
 	SInt32 m_OSXMajor;

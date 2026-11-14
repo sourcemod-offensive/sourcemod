@@ -156,6 +156,25 @@ static cell_t StringToInt64(IPluginContext *pCtx, const cell_t *params)
 	return dummy - str;
 }
 
+static cell_t StringToI64(IPluginContext *pCtx, const cell_t *params)
+{
+	cell_t* out;
+	if (int err = pCtx->LocalToPhysAddr(params[1], &out); err != SP_ERROR_NONE)
+		return pCtx->ThrowNativeErrorEx(err, "Could not read argument (error %d)", err);
+
+	char *str, *dummy = nullptr;
+	if (int err = pCtx->LocalToString(params[2], &str); err != SP_ERROR_NONE)
+		return pCtx->ThrowNativeErrorEx(err, "Invalid str (error %d)", err);
+
+	cell_t *consumed;
+	if (int err = pCtx->LocalToPhysAddr(params[4], &consumed); err != SP_ERROR_NONE)
+		return pCtx->ThrowNativeErrorEx(err, "Invalid nConsumed (error %d)", err);
+
+	*reinterpret_cast<int64_t*>(out) = strtoll(str, &dummy, params[3]);
+	*consumed = dummy - str;
+	return 0;
+}
+
 static cell_t sm_numtostr(IPluginContext *pCtx, const cell_t *params)
 {
 	char *str;
@@ -230,6 +249,9 @@ static cell_t sm_format(IPluginContext *pCtx, const cell_t *params)
 static char g_vformatbuf[2048];
 static cell_t sm_vformat(IPluginContext *pContext, const cell_t *params)
 {
+	if (pContext->GetBaseRuntime()->AsV2() != nullptr)
+		return pContext->ThrowNativeError("VFormat is not supported in SourcePawn 2 plugins");
+
 	int vargPos = static_cast<int>(params[4]);
 
 	/* Get the parent parameter array */
@@ -637,6 +659,7 @@ REGISTER_NATIVES(basicStrings)
 	{"StringToInt",			sm_strconvint},
 	{"StringToIntEx",		StringToIntEx},
 	{"StringToInt64",		StringToInt64},
+	{"StringToI64",			StringToI64},
 	{"StringToFloat",		sm_strtofloat},
 	{"StringToFloatEx",		StringToFloatEx},
 	{"StripQuotes",			StripQuotes},

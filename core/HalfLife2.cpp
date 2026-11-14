@@ -51,6 +51,10 @@
 #include <vietnam_usermessages.pb.h>
 #endif
 
+#if SOURCE_ENGINE == SE_TF2 || SOURCE_ENGINE == SE_DODS || SOURCE_ENGINE == SE_HL2DM || SOURCE_ENGINE == SE_CSS
+#define SE_SDK2013_2025
+#endif
+
 typedef ICommandLine *(*FakeGetCommandLine)();
 
 #define TIER0_NAME			FORMAT_SOURCE_BIN_NAME("tier0")
@@ -402,7 +406,70 @@ bool UTIL_FindDataMapInfo(datamap_t *pMap, const char *name, sm_datatable_info_t
 		pMap = pMap->baseMap;
 	}
 
-	return false; 
+	return false;
+}
+
+template <typename Table, typename Info>
+static bool UTIL_FindInTablePath(Table *pTable, const char *name, Info *info,
+								 bool (*search)(Table *, const char *, Info *),
+								 Table *(*descend)(const Info &))
+{
+	unsigned int baseOffset = 0;
+	const char *component = name;
+
+	while (true)
+	{
+		const char *dot = strchr(component, '.');
+		size_t len = dot ? (size_t)(dot - component) : strlen(component);
+
+		char buffer[256];
+		if (len == 0 || len >= sizeof(buffer))
+		{
+			return false;
+		}
+
+		memcpy(buffer, component, len);
+		buffer[len] = '\0';
+
+		// Search the table for the prop
+		Info local;
+		if (!search(pTable, buffer, &local))
+		{
+			return false;
+		}
+
+		if (!dot)
+		{
+			info->prop = local.prop;
+			info->actual_offset = baseOffset + local.actual_offset;
+			return true;
+		}
+
+		// Handle nested properties
+		Table *pNext = descend(local);
+		if (!pNext)
+		{
+			return false;
+		}
+
+		baseOffset += local.actual_offset;
+		pTable = pNext;
+		component = dot + 1;
+	}
+}
+
+static bool UTIL_FindInSendTablePath(SendTable *pTable, const char *name, sm_sendprop_info_t *info)
+{
+	return UTIL_FindInTablePath<SendTable, sm_sendprop_info_t>(pTable, name, info,
+		[](SendTable *t, const char *n, sm_sendprop_info_t *o) { return UTIL_FindInSendTable(t, n, o, 0); },
+		[](const sm_sendprop_info_t &i) -> SendTable * { return i.prop->GetDataTable(); });
+}
+
+static bool UTIL_FindDataMapInfoPath(datamap_t *pMap, const char *name, sm_datatable_info_t *info)
+{
+	return UTIL_FindInTablePath<datamap_t, sm_datatable_info_t>(pMap, name, info,
+		[](datamap_t *m, const char *n, sm_datatable_info_t *o) { return UTIL_FindDataMapInfo(m, n, o); },
+		[](const sm_datatable_info_t &i) -> datamap_t * { return i.prop->td; });
 }
 
 ServerClass *CHalfLife2::FindServerClass(const char *classname)
@@ -463,6 +530,10 @@ bool CHalfLife2::FindSendPropInfo(const char *classname, const char *offset, sm_
 	if (!pInfo->lookup.retrieve(offset, &temp))
 	{
 		bool found = UTIL_FindInSendTable(pInfo->sc->m_pTable, offset, &temp.info, 0);
+		if (!found && strchr(offset, '.'))
+		{
+			found = UTIL_FindInSendTablePath(pInfo->sc->m_pTable, offset, &temp.info);
+		}
 		temp.name = offset;
 
 		pInfo->lookup.insert(offset, temp);
@@ -515,6 +586,10 @@ bool CHalfLife2::FindDataMapInfo(datamap_t *pMap, const char *offset, sm_datatab
 	if (!cache->retrieve(offset, &temp))
 	{
 		bool found = UTIL_FindDataMapInfo(pMap, offset, &temp.info);
+		if (!found && strchr(offset, '.'))
+		{
+			found = UTIL_FindDataMapInfoPath(pMap, offset, &temp.info);
+		}
 		temp.name = offset;
 
 		cache->insert(offset, temp);
@@ -759,7 +834,7 @@ void CHalfLife2::AddToFakeCliCmdQueue(int client, int userid, const char *cmd)
 	{
 		pFake = new DelayedFakeCliCmd;
 	} else {
-		pFake = m_FreeCmds.front();
+		pFake = m_FreeCmds.top();
 		m_FreeCmds.pop();
 	}
 
@@ -855,7 +930,7 @@ const ICommandArgs *CHalfLife2::PeekCommandStack()
 		return NULL;
 	}
 
-	return m_CommandStack.front().args;
+	return m_CommandStack.top().args;
 }
 
 void CHalfLife2::PopCommandStack()
@@ -866,9 +941,9 @@ void CHalfLife2::PopCommandStack()
 const char *CHalfLife2::CurrentCommandName()
 {
 #if SOURCE_ENGINE >= SE_ORANGEBOX
-	return m_CommandStack.front().args->Arg(0);
+	return m_CommandStack.top().args->Arg(0);
 #else
-	return m_CommandStack.front().cmd;
+	return m_CommandStack.top().cmd;
 #endif
 }
 
@@ -997,7 +1072,7 @@ CBaseEntity *CHalfLife2::ReferenceToEntity(cell_t entRef)
 	{
 		/* Proper ent reference */
 		int hndlValue = entRef & ~ENTREF_MASK;
-#if SOURCE_ENGINE == SE_TF2
+#if defined(SE_SDK2013_2025)
 		auto hndl = CBaseHandle::UnsafeFromIndex(hndlValue);
 #else
 		CBaseHandle hndl(hndlValue);
@@ -1105,7 +1180,7 @@ int CHalfLife2::ReferenceToIndex(cell_t entRef)
 	{
 		/* Proper ent reference */
 		int hndlValue = entRef & ~ENTREF_MASK;
-#if SOURCE_ENGINE == SE_TF2
+#if defined(SE_SDK2013_2025)
 		auto hndl = CBaseHandle::UnsafeFromIndex(hndlValue);
 #else
 		CBaseHandle hndl(hndlValue);
@@ -1175,7 +1250,7 @@ cell_t CHalfLife2::ReferenceToBCompatRef(cell_t entRef)
 	}
 
 	int hndlValue = entRef & ~ENTREF_MASK;
-#if SOURCE_ENGINE == SE_TF2
+#if defined(SE_SDK2013_2025)
 	auto hndl = CBaseHandle::UnsafeFromIndex(hndlValue);
 #else
 	CBaseHandle hndl(hndlValue);
@@ -1308,15 +1383,15 @@ public:
 
 	void Purge()
 	{
-		if (!IsExternallyAllocated())
+		if (!this->IsExternallyAllocated())
 		{
-			if (m_pMemory)
+			if (this->m_pMemory)
 			{
 				UTLMEMORY_TRACK_FREE();
-				g_pMemAlloc->Free((void*)m_pMemory);
-				m_pMemory = 0;
+				g_pMemAlloc->Free((void*)this->m_pMemory);
+				this->m_pMemory = 0;
 			}
-			m_nAllocationCount = 0;
+			this->m_nAllocationCount = 0;
 		}
 		BaseClass::Purge();
 	}

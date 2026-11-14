@@ -389,7 +389,7 @@ inline jit_uint8_t Write_PushPOD(JitWriter *jit, const SourceHook::PassInfo *inf
 			if (g_StackUsage + 8 < SCHAR_MAX)
 				X64_Mov_RmRSP_Disp8_Reg(jit, reg2, (jit_int8_t)g_StackUsage + 8);
 			else
-				X64_Mov_RmRSP_Disp32_Reg(jit, reg2, (jit_int8_t)g_StackUsage + 8);
+				X64_Mov_RmRSP_Disp32_Reg(jit, reg2, g_StackUsage + 8);
 			g_StackUsage += 16;
 		} else {
 			g_StackUsage += 8;
@@ -413,83 +413,16 @@ inline void Write_PushFloat(JitWriter *jit, const SourceHook::PassInfo *info, un
 	
 	if (info->flags & PASSFLAG_BYVAL)
 	{
-		switch (info->size)
+		// Read only the argument's bytes; the parameter buffer may be unaligned.
+		if (info->size == 4 || info->size == 8)
 		{
-			case 4:
-			{
-				//if offset % 16 == 0
-				// movaps floatReg, [ebx+<offset>]
-				//else
-				// movups floatReg, [ebx+<offset>]
-				if (!offset) {
-					X64_Movaps_Rm(jit, floatReg, kREG_EBX);
-				} else if (offset < SCHAR_MAX) {
-					if (offset % 16 == 0)
-						X64_Movaps_Rm_Disp8(jit, floatReg, kREG_EBX, (jit_int8_t)offset);
-					else
-						X64_Movups_Rm_Disp8(jit, floatReg, kREG_EBX, (jit_int8_t)offset);
-				} else {
-					if (offset % 16 == 0)
-						X64_Movaps_Rm_Disp32(jit, floatReg, kREG_EBX, offset);
-					else
-						X64_Movups_Rm_Disp32(jit, floatReg, kREG_EBX, offset);
-				}
-				break;
-			}
-			case 8:
-			{
-				//if offset % 16 == 0
-				// movapd floatReg, [ebx+<offset>]
-				//else
-				// movupd floatReg, [ebx+<offset>]
-				if (!offset) {
-					X64_Movapd_Rm(jit, floatReg, kREG_EBX);
-				} else if (offset < SCHAR_MAX) {
-					if (offset % 16 == 0)
-						X64_Movapd_Rm_Disp8(jit, floatReg, kREG_EBX, (jit_int8_t)offset);
-					else
-						X64_Movupd_Rm_Disp8(jit, floatReg, kREG_EBX, (jit_int8_t)offset);
-				} else {
-					if (offset % 16 == 0)
-						X64_Movapd_Rm_Disp32(jit, floatReg, kREG_EBX, offset);
-					else
-						X64_Movupd_Rm_Disp32(jit, floatReg, kREG_EBX, offset);
-				}
-				break;
-			}
-			case 16:
-				//if offset % 16 == 0
-				// movaps floatReg, [ebx+<offset>]
-				//else
-				// movads floatReg, [ebx+<offset>]
-				//if (offset+8) % 16 == 0
-				// movaps floatReg2, [ebx+<offset>+8]
-				//else
-				// movads floatReg2, [ebx+<offset>+8]
-				floatReg2 = needStack ? NextScratchFloatReg() : NextFloatReg(8);
-
-				if (!offset) {
-					X64_Movaps_Rm(jit, floatReg, kREG_EBX);
-					X64_Movups_Rm_Disp8(jit, floatReg2, kREG_EBX, offset+8);
-				} else if (offset < SCHAR_MAX) {
-					if (offset % 16 == 0)
-						X64_Movaps_Rm_Disp8(jit, floatReg, kREG_EBX, (jit_int8_t)offset);
-					else
-						X64_Movups_Rm_Disp8(jit, floatReg, kREG_EBX, (jit_int8_t)offset);
-					if ((offset + 8) % 16 == 0)
-						X64_Movaps_Rm_Disp8(jit, floatReg2, kREG_EBX, (jit_int8_t)offset+8);
-					else
-						X64_Movups_Rm_Disp8(jit, floatReg2, kREG_EBX, (jit_int8_t)offset+8);
-				} else {
-					if (offset % 16 == 0)
-						X64_Movaps_Rm_Disp32(jit, floatReg, kREG_EBX, offset);
-					else
-						X64_Movups_Rm_Disp32(jit, floatReg, kREG_EBX, offset);
-					if ((offset + 8) % 16 == 0)
-						X64_Movaps_Rm_Disp32(jit, floatReg2, kREG_EBX, offset+8);
-					else
-						X64_Movups_Rm_Disp32(jit, floatReg2, kREG_EBX, offset+8);
-				}
+			X64_MovScalar_Rm_Disp(jit, floatReg, kREG_RBX, offset, info->size);
+		}
+		else if (info->size == 16)
+		{
+			floatReg2 = needStack ? NextScratchFloatReg() : NextFloatReg(8);
+			X64_MovScalar_Rm_Disp(jit, floatReg, kREG_RBX, offset, 8);
+			X64_MovScalar_Rm_Disp(jit, floatReg2, kREG_RBX, offset + 8, 8);
 		}
 	} else if (info->flags & PASSFLAG_BYREF) {
 		//lea reg, [ebx+<offset>]
@@ -499,40 +432,12 @@ inline void Write_PushFloat(JitWriter *jit, const SourceHook::PassInfo *info, un
 	
 	if (needStack)
 	{
-		// Move register value onto stack
-		//if g_StackUsage == 0
-		// movaps [rsp], floatReg
-		//else
-		// movaps [rsp+<g_StackUsage>], floatReg
-		//if info->size == 16
-		// movaps [rsp+<g_StackUsage>+8], floatReg2
-		if (g_StackUsage == 0) {
-			X64_Movaps_Rm_Reg(jit, kREG_RSP, floatReg);
-		} else if (g_StackUsage < SCHAR_MAX) {
-			if (g_StackUsage % 16 == 0)
-				X64_Movaps_Rm_Disp8_Reg(jit, kREG_RSP, floatReg, (jit_int8_t)g_StackUsage);
-			else
-				X64_Movups_Rm_Disp8_Reg(jit, kREG_RSP, floatReg, (jit_int8_t)g_StackUsage);
-		} else {
-			if (g_StackUsage % 16 == 0)
-				X64_Movaps_Rm_Disp32_Reg(jit, kREG_RSP, floatReg, g_StackUsage);
-			else
-				X64_Movups_Rm_Disp32_Reg(jit, kREG_RSP, floatReg, g_StackUsage);
-		}
-			
+		// Stack argument slots are eight bytes, even for a four-byte float.
+		X64_MovScalar_Rm_Disp_Reg(jit, kREG_RSP, floatReg, g_StackUsage,
+		                          info->size == 4 ? 4 : 8);
 		if (info->size == 16)
 		{
-			if (g_StackUsage + 8 < SCHAR_MAX) {
-				if ((g_StackUsage + 8) % 16 == 0)
-					X64_Movaps_Rm_Disp8_Reg(jit, kREG_RSP, floatReg2, (jit_int8_t)g_StackUsage+8);
-				else
-					X64_Movups_Rm_Disp8_Reg(jit, kREG_RSP, floatReg2, (jit_int8_t)g_StackUsage+8);
-			} else {
-				if ((g_StackUsage + 8) % 16 == 0)
-					X64_Movaps_Rm_Disp32_Reg(jit, kREG_RSP, floatReg, g_StackUsage+8);
-				else
-					X64_Movups_Rm_Disp32_Reg(jit, kREG_RSP, floatReg, g_StackUsage+8);
-			}
+			X64_MovScalar_Rm_Disp_Reg(jit, kREG_RSP, floatReg2, g_StackUsage + 8, 8);
 			g_StackUsage += 16;
 		} else {
 			g_StackUsage += 8;
@@ -566,9 +471,9 @@ inline uint8_t MapFloatToIntReg(uint8_t floatReg)
 
 inline void Write_VarArgFloatCopy(JitWriter *jit, const SourceHook::PassInfo *info, uint8_t *floatRegs)
 {
-	if (!floatRegs || floatRegs[0] == STACK_PARAM)
+	if (!floatRegs || MapFloatToIntReg(floatRegs[0]) == INVALID_REG)
 		return;
-		
+
 	uint8_t intReg1 = MapFloatToIntReg(floatRegs[0]);
 
 	switch (info->size)
@@ -585,11 +490,11 @@ inline void Write_VarArgFloatCopy(JitWriter *jit, const SourceHook::PassInfo *in
 			//movq intReg1, floatReg[0]
 			//movq intReg2, floatReg[1]
 			X64_Movq_Reg_Xmm(jit, intReg1, floatRegs[0]);
-			if (floatRegs[1] != STACK_PARAM)
+			if (MapFloatToIntReg(floatRegs[1]) != INVALID_REG)
 			{
 				int intReg2 = MapFloatToIntReg(floatRegs[1]);
 				X64_Movq_Reg_Xmm(jit, intReg2, floatRegs[1]);
-			} 
+			}
 			break;
 	}
 }
@@ -888,8 +793,7 @@ inline void Write_CallFunction(JitWriter *jit, FuncAddrMethod method, CallWrappe
 	if (method == FuncAddr_Direct)
 	{
 		int64_t diff = (intptr_t)pWrapper->GetCalleeAddr() - ((intptr_t)jit->outbase + jit->get_outputpos() + 5);
-		int32_t upperBits = (diff >> 32);
-		if (upperBits == 0 || upperBits == -1) {
+		if (jit->outbase && diff == (int64_t)(int32_t)diff) {
 			//call <addr>
 			jitoffs_t call = X64_Call_Imm32(jit, 0);
 			X64_Write_Jump32_Abs(jit, call, pWrapper->GetCalleeAddr());
