@@ -333,10 +333,15 @@ static cell_t GetPlayerWeaponSlot(IPluginContext *pContext, const cell_t *params
 	static ValveCall *pCall = NULL;
 	if (!pCall)
 	{
-		ValvePassInfo pass[2];
+		ValvePassInfo pass[3];
+		int params = 1;
 		InitPass(pass[0], Valve_POD, PassType_Basic, PASSFLAG_BYVAL);
-		InitPass(pass[1], Valve_CBaseEntity, PassType_Basic, PASSFLAG_BYVAL);
-		if (!CreateBaseCall("Weapon_GetSlot", ValveCall_Player, &pass[1], pass, 1, &pCall))
+#if SOURCE_ENGINE == SE_CSSO
+		params++;
+		InitPass(pass[1], Valve_POD, PassType_Basic, PASSFLAG_BYVAL);
+#endif
+		InitPass(pass[2], Valve_CBaseEntity, PassType_Basic, PASSFLAG_BYVAL);
+		if (!CreateBaseCall("Weapon_GetSlot", ValveCall_Player, &pass[2], pass, params, &pCall))
 		{
 			return pContext->ThrowNativeError("\"Weapon_GetSlot\" not supported by this mod");
 		} else if (!pCall) {
@@ -348,6 +353,9 @@ static cell_t GetPlayerWeaponSlot(IPluginContext *pContext, const cell_t *params
 	START_CALL();
 	DECODE_VALVE_PARAM(1, thisinfo, 0);
 	DECODE_VALVE_PARAM(2, vparams, 0);
+#if SOURCE_ENGINE == SE_CSSO
+	*(int *)(vptr + pCall->vparams[1].offset) = -1;
+#endif
 	FINISH_CALL_SIMPLE(&pEntity);
 
 	return gamehelpers->EntityToBCompatRef(pEntity);

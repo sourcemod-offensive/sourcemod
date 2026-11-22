@@ -151,7 +151,7 @@ DETOUR_DECL_MEMBER0(DetourWeaponPrice, int)
 }
 #endif
 
-#if SOURCE_ENGINE == SE_CSS || SOURCE_ENGINE == SE_CSSO
+#if SOURCE_ENGINE == SE_CSS || (SOURCE_ENGINE == SE_CSSO && defined(PLATFORM_64BITS))
 DETOUR_DECL_MEMBER2(DetourTerminateRound, void, float, delay, int, reason)
 {
 	if (g_pIgnoreTerminateDetour)
@@ -177,14 +177,22 @@ DETOUR_DECL_MEMBER4(DetourTerminateRound, void, float, delay, int, reason, int, 
 // a3 - reason
 // a4 - unknown
 // a5 - unknown
+#if SOURCE_ENGINE == SE_CSSO
+DETOUR_DECL_MEMBER1(DetourTerminateRound, void, int, reason)
+#else
 DETOUR_DECL_MEMBER3(DetourTerminateRound, void, int, reason, int, unknown, int, unknown2)
+#endif
 {
 	float delay;
 
 	if (g_pIgnoreTerminateDetour)
 	{
 		g_pIgnoreTerminateDetour = false;
+#if SOURCE_ENGINE == SE_CSSO
+		return DETOUR_MEMBER_CALL(DetourTerminateRound)(reason);
+#else
 		return DETOUR_MEMBER_CALL(DetourTerminateRound)(reason, unknown, unknown2);
+#endif
 	}
 
 	//Save the delay
@@ -210,7 +218,7 @@ DETOUR_DECL_MEMBER3(DetourTerminateRound, void, int, reason, int, unknown, int, 
 
 	reason = RoundEndReasonToGame(reason);
 	
-#if SOURCE_ENGINE == SE_CSS || SOURCE_ENGINE == SE_CSSO
+#if SOURCE_ENGINE == SE_CSS || (SOURCE_ENGINE == SE_CSSO && defined(PLATFORM_64BITS))
 	if (result == Pl_Changed)
 		return DETOUR_MEMBER_CALL(DetourTerminateRound)(delay, reason);
 
@@ -227,13 +235,21 @@ DETOUR_DECL_MEMBER3(DetourTerminateRound, void, int, reason, int, unknown, int, 
 		{
 			movss xmm1, delay
 		}
+#if SOURCE_ENGINE == SE_CSSO
+		return DETOUR_MEMBER_CALL(DetourTerminateRound)(reason);
+#else
 		return DETOUR_MEMBER_CALL(DetourTerminateRound)(reason, unknown, unknown2);
+#endif
 	}
 	__asm
 	{
 		movss xmm1, orgdelay
 	}
+#if SOURCE_ENGINE == SE_CSSO
+	return DETOUR_MEMBER_CALL(DetourTerminateRound)(orgreason);
+#else
 	return DETOUR_MEMBER_CALL(DetourTerminateRound)(orgreason, unknown, unknown2);
+#endif
 #endif
 }
 

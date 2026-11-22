@@ -8,14 +8,12 @@
 			"WeaponName"
 			{
 				"windows"		"6"
-				"windows64"		"10"
 			}
 			//Offset of iWeaponPrice in CCSWeaponInfo
 			"WeaponPrice"
 			{
 				// STRING: "WeaponPrice"
-				"windows"		"1924"
-				"windows64"		"1972"
+				"windows"		"1928"
 			}
 			//Offset of iWeaponID in CCSWeaponInfo
 			"WeaponID"
@@ -23,33 +21,28 @@
 				// STRING: "MaxPlayerSpeed"
 				// CCSWeaponInfo::flMaxPlayerSpeed - 4
 				"windows"		"1872"
-				"windows64"		"1920"
 			}
 			//Offset into CheckWinLimit to find CT team score offset from gamerules.
 			"CTTeamScoreOffset"
 			{
-				"windows"	"89"
-				"windows64"	"113"
+				"windows"	"88"
 			}
 			//Offset into CheckWinLimit to find T team score offset from gamerules.
 			"TTeamScoreOffset"
 			{
-				"windows"	"111"
-				"windows64"	"138"
+				"windows"	"113"
 			}
 			// after you found CSWeaponDrop(CBaseCombatWeapon*, Vector)
 			// xref it, CSWeaponDrop(CBaseCombatWeapon*, bool) is the function that has 64.0
 			// it calls WorldSpaceCenter at the beginning
 			"WorldSpaceCenter"
 			{
-				"windows"	"157"
-				"windows64"	"157"
+				"windows"	"158"
 			}
 			// get from sdktools
 			"EyeAngles"
 			{
-				"windows"	"139"
-				"windows64"	"139"
+				"windows"	"140"
 			}
 		}
 		"Signatures"
@@ -59,44 +52,38 @@
 			"RoundRespawn"
 			{
 				"library"	"server"
-				"windows"	"\x53\x56\x57\x8B\xF1\xB9\x2A\x2A\x2A\x2A\x6A\x2A\xE8\x2A\x2A\x2A\x2A\x84\xC0"
-				"windows64"	"\x48\x89\x5C\x24\x2A\x48\x89\x74\x24\x2A\x57\x48\x83\xEC\x2A\x48\x8B\xD9\x4C\x89\x74\x24"
+				"windows"	"\x55\x8B\xEC\x83\xEC\x2A\x53\x8B\x1D\x2A\x2A\x2A\x2A\x56\x8B\xF1"
 			}
 			// String: "CCSPlayer::SwitchTeam( %d ) - invalid team index."
 			"SwitchTeam"
 			{
 				"library"	"server"
-				"windows"	"\x55\x8B\xEC\x83\xEC\x2A\x56\x8B\x75\x2A\x57\x56\x8B\xF9\xE8\x2A\x2A\x2A\x2A\x83\xC4"
-				"windows64"	"\x48\x89\x5C\x24\x08\x48\x89\x74\x24\x10\x57\x48\x83\xEC\x40\x48\x8B\xD9\x41"
+				"windows"	"\x55\x8B\xEC\x8B\x55\x2A\x83\xEC\x2A\x56\x8B\xF1\x85\xD2"
 			}
 			// String: "#Alias_Not_Avail"
 			"HandleCommand_Buy_Internal"
 			{
 				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x51\x53\x56\x57\x6A\x00\x8B\xF1\xE8\x2A\x2A\x2A\x2A\x8B\x5D"
-				"windows64"		"\x40\x53\x55\x56\x57\x48\x83\xEC\x48"
+				"windows"		"\x55\x8B\xEC\x83\xE4\x2A\x83\xEC\x2A\x53\x56\x57\x6A\x00\x8B\xF1"
 			}
 			// CSWeaponDrop(CBaseCombatWeapon*, Vector): "Warning: Can't find player's right hand attachment! [weapon_hand_R]\n"
 			"CSWeaponDrop"
 			{
 				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x81\xEC\x2A\x2A\x2A\x2A\x53\x57\x8B\x7D\x2A\x8B\xD9\xC6\x45\x2A\x00"
-				"windows64"		"\x48\x89\x5C\x24\x2A\x48\x89\x74\x24\x2A\x55\x57\x41\x56\x48\x8D\xAC\x24\x2A\x2A\x2A\x2A\x48\x81\xEC\x2A\x2A\x2A\x2A\x45\x32\xF6"
+				"windows"		"\x55\x8B\xEC\x83\xE4\x2A\x81\xEC\x2A\x2A\x2A\x2A\x53\x56\x57\x8B\x7D\x2A\x8B\xD9\x85\xFF"
 			}
 			// String: "CTsWin"
 			"TerminateRound"
 			{
 				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x83\xEC\x2A\x53\x8B\x5D\x2A\x56\x57\x8B\xF9\xC7\x45\x2A\x00\x00\x00\x00\x33\xF6"
-				"windows64"		"\x48\x8B\xC4\x55\x56\x48\x8D\x68\xA1\x48\x81\xEC\x98\x00\x00\x00\x48\x89"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x2A\x8B\x45\x2A\x53\x56\x57\x8B\xD9"
 			}
 			// String: "FX_FireBullets: GetWeaponInfo failed for weapon %s\n" follow the xref, go to beginning of the if-else
             // there is a call to GetWeaponInfo
 			"GetWeaponInfo"
 			{
 				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x8B\x4D\x2A\x83\xEC\x2A\x56\x85\xC9"
-				"windows64"		"\x48\x83\xEC\x2A\x85\xC9\x0F\x84"
+				"windows"		"\x55\x8B\xEC\x83\xEC\x2A\x56\x85\xC9"
 			}
 			// in GetWeaponInfo:
 			// if (v3 == GetInvalidWeaponInfoHandle()) return 0;
@@ -104,25 +91,7 @@
 			"GetFileWeaponInfoFromHandle"
 			{
 				"library"		"server"
-				"windows"		"\x55\x8B\xEC\x0F\xB7\x45"
-				"windows64"		"\x66\x3B\x0D\x2A\x2A\x2A\x2A\x73"
-			}
-			// find FX_FireBullets (strings starting with "FX_FireBullets")
-			// FX_FireBullets calls GetWeaponID("weapon_revolver")
-			// GetWeaponID calls AliasToWeaponID(v2 + 1)
-			"AliasToWeaponID"
-			{
-				"library"	"server"
-				"windows"	"\x55\x8B\xEC\xFF\x75\x2A\xB9\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\x8B\xD0"
-				"windows64"	"\x48\x89\x5C\x24\x2A\x56\x48\x83\xEC\x2A\xBE"
-			}
-			// String: "FX_FireBullets: weapon alias for ID %d not found\n" follow the xref, go to beginning of the if-else
-            // there is a call to WeaponIDToAlias
-			"WeaponIDToAlias"
-			{
-				"library"	"server"
-				"windows"	"\x55\x8B\xEC\x8B\x45\x2A\x3B\x05\x2A\x2A\x2A\x2A\x73\x2A\x8B\x0D\x2A\x2A\x2A\x2A\x83\xF9\x2A\x74\x2A\x3B\xC1\x7F\x2A\x8B\x15\x2A\x2A\x2A\x2A\x56\x83\xF8\x2A\x74\x2A\x6B\xC8\x2A\x2A\x2A\x2A\xEB\x2A\x83\xCE\x2A\x6B\xC8\x2A\x3B\xF0\x5E\x74\x2A\x8B\x44\x11"
-				"windows64"	"\x3B\x0D\x2A\x2A\x2A\x2A\x73\x45"
+				"windows"		"\x66\x3B\x0D\x2A\x2A\x2A\x2A\x73"
 			}
 			// In CS:SO this is actually CCSGameRules::CheckRestartRound(void) but to keep same gamedata as cs:s.
 			"CheckWinLimit"
@@ -131,8 +100,7 @@
 				// function start: if ( *(float *)(v1 + 1016) < *(float *)(gpGlobals + 12) ) { v1 = ConVar::GetInt((__int64)&mp_restartgame);
 				// STRING: "World triggered \"Restart_Round_(%i_%s)\"\n"
 				"library"	"server"
-				"windows"	"\xA1\x2A\x2A\x2A\x2A\xF3\x0F\x10\x40\x2A\x0F\x2F\x87\x2A\x2A\x2A\x2A\x0F\x86\x2A\x2A\x2A\x2A\xB9"
-				"windows64"	"\x48\x8B\x05\x2A\x2A\x2A\x2A\xBD\x2A\x2A\x2A\x2A\xF3\x0F\x10\x87"
+				"windows"	"\xA1\x2A\x2A\x2A\x2A\xF3\x0F\x10\x40\x2A\x0F\x2F\x87\x2A\x2A\x2A\x2A\x0F\x86\x2A\x2A\x2A\x2A\xA1"
 			}
 		}
 	}
@@ -151,7 +119,6 @@
 			"MVPs"
 			{
 				"windows"	"134"
-				"windows64"	"158"
 			}
 		}
 	}
@@ -169,7 +136,6 @@
 			"CScore"
 			{
 				"windows"	"142"
-				"windows64"	"166"
 			}
 		}
 	}
@@ -187,7 +153,6 @@
 			"Assists"
 			{
 				"windows"	"138"
-				"windows64"	"162"
 			}
 		}
 	}
@@ -209,12 +174,10 @@
 			"ClanTagSize"
 			{
 				"windows"	"16"
-				"windows64"	"16"
 			}
 			"ClanTag"
 			{
 				"windows"	"40"
-				"windows64"	"40"
 			}
 		}
 	}
@@ -223,23 +186,21 @@
 	{
 		"Keys"
 		{
-			"WeaponDatabaseBase"	"WeaponIDToAlias"
+			"WeaponDatabaseBase"	"GetWeaponInfo"
 		}
 
 		"Offsets"
 		{
-			// offset into WeaponIDToAlias, usually first cmp instruction
+			// offset into WeaponDatabaseBase
 			// cmp ecx, cs:g_WeaponDatabase.m_nAllocationCount
 			"WeaponDatabase"
 			{
-				"windows"	"8"
-				"windows64"	"2"
+				"windows"	"41"
 			}
 			// -offsetof(CUtlDict, m_nAllocationCount) (because WeaponDatabase points to it)
 			"WeaponDatabaseOffset"
 			{
 				"windows"	"-8"
-				"windows64"	"-16"
 			}
 		}
 	}

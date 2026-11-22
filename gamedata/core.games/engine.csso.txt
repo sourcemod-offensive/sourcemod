@@ -8,12 +8,10 @@
 			"EntInfo"
 			{
 				"windows"	"4"
-				"windows64"	"8"
 			}
 			"GetDataDescMap"
 			{
 				"windows"	"13"
-				"windows64"	"13"
 			}
 		}
 	}

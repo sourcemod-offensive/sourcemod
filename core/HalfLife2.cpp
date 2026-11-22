@@ -314,7 +314,7 @@ ICommandLine *CHalfLife2::GetValveCommandLine()
 	return ((FakeGetCommandLine)((FakeGetCommandLine *)m_pGetCommandLine))();
 }
 
-#if SOURCE_ENGINE != SE_DARKMESSIAH
+#if SOURCE_ENGINE != SE_DARKMESSIAH && SOURCE_ENGINE != SE_CSSO
 IChangeInfoAccessor *CBaseEdict::GetChangeAccessor()
 {
 	return engine->GetChangeAccessor( (const edict_t *)this );

@@ -627,6 +627,14 @@ void *GetWeaponInfo(int weaponID)
 	static ICallWrapper *pWrapper = NULL;
 	if (!pWrapper)
 	{
+#if SOURCE_ENGINE == SE_CSSO
+		REGISTER_ADDR("GetWeaponInfo", NULL,
+			PassInfo retpass; \
+			retpass.flags = PASSFLAG_BYVAL; \
+			retpass.type = PassType_Basic; \
+			retpass.size = sizeof(void *); \
+			pWrapper = g_pBinTools->CreateCall(addr, CallConv_ThisCall, &retpass, NULL, 0))
+#else
 		REGISTER_ADDR("GetWeaponInfo", NULL,
 			PassInfo pass[1]; \
 			PassInfo retpass; \
@@ -637,6 +645,7 @@ void *GetWeaponInfo(int weaponID)
 			retpass.type = PassType_Basic; \
 			retpass.size = sizeof(void *); \
 			pWrapper = g_pBinTools->CreateCall(addr, CallConv_Cdecl, &retpass, pass, 1))
+#endif
 	}
 
 	ArgBuffer<int> vstk(weaponID);

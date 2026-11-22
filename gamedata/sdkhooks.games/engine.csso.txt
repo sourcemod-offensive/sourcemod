@@ -7,145 +7,121 @@
 			// STRING: "%s Blocked by %s"
 			"Blocked"
 			{
-				"windows"	"108"
-				"windows64"	"108"
+				"windows"	"109"
 			}
 			// Blocked - 2
 			"EndTouch"
 			{
-				"windows"	"106"
-				"windows64"	"106"
+				"windows"	"107"
 			}
 			// STRING: "ERROR: Undefined ammo type!"
 			"FireBullets"
 			{
-				"windows"	"119"
-				"windows64"	"119"
+				"windows"	"120"
 			}
 			// CBaseEntity::ModifyOrAppendCriteria - 1
 			// CBaseEntity::ModifyOrAppendCriteria: STRINGS: "randomnum", "classname", "name", "health", "%.3f", "healthfrac", "episodic", "world"
 			"GetMaxHealth"
 			{
-				"windows"	"124"
-				"windows64"	"124"
+				"windows"	"125"
 			}
 			// TODO: how to find
 			"GroundEntChanged"
 			{
-				"windows"	"185"
-				"windows64"	"185"
+				"windows"	"186"
 			}
 			// STRING: "sequence: %d, frame %.0f"
 			"OnTakeDamage"
 			{
-				"windows"	"67"
-				"windows64"	"67"
+				"windows"	"68"
 			}
 			// STRINGS: "userid", "health", "priority", "player_hurt", "attacker"
 			"OnTakeDamage_Alive"
 			{
-				"windows"	"286"
-				"windows64"	"286"
+				"windows"	"287"
 			}
-			// STRING: "A.I. Disabled..."
+			// STRING: "Eff: %s, Move: %s\n"
 			"PreThink"
 			{
-				"windows"	"347"
-				"windows64"	"347"
+				"windows"	"348"
 			}
 			// STRINGS: "weapon_c4", "SpottedLooseBomb", "#CStrike_TitlesTXT_Game_afk_bomb_drop", "Player.AmbientUnderWater"
 			// xref "Player.AmbientUnderWater", smaller function is Precache, bigger is CCSPlayer::PostThink
 			"PostThink"
 			{
-				"windows"	"348"
-				"windows64"	"348"
+				"windows"	"349"
 			}
 			// STRINGS: "userid", "weapon_reload"
 			"Reload"
 			{
-				"windows"	"284"
-				"windows64"	"284"
+				"windows"	"285"
 			}
 			// CBaseEntity::SetModel - 4, SetEntityModel in sdktools
 			"SetTransmit"
 			{
 				"windows"	"24"
-				"windows64"	"24"
 			}
-			// CBaseEntity::SetOwnerEntity - 1
+			// CBaseEntity::SetOwnerEntity - 1, SetOwnerEntity in sdktools
 			"ShouldCollide"
 			{
 				"windows"	"20"
-				"windows64"	"20"
 			}
 			// xref "Player.Respawn", smaller function is Precache, bigger is CCSPlayer::Respawn
 			"Spawn"
 			{
 				"windows"	"26"
-				"windows64"	"26"
 			}
 			// STRNGS: "_EnableUpdateTarget", "_DisableUpdateTarget", "SetPosition"
 			"Use"
 			{
-				"windows"	"103"
-				"windows64"	"103"
+				"windows"	"104"
 			}
 			// Use + 1
 			"StartTouch"
 			{
-				"windows"	"104"
-				"windows64"	"104"
+				"windows"	"105"
 			}
 			// StartTouch + 1
 			"Touch"
 			{
-				"windows"	"105"
-				"windows64"	"105"
+				"windows"	"106"
 			}
 			// CFlexCycler::Think: STRINGS: "%s%d", "%d : %s", ""%s"", "%31s", "phoneme", "upper_raiser", "%s:%s"
 			// CBlendingCycler::Think: STRING: "Current Blend: %d"
 			"Think"
 			{
-				"windows"	"52"
-				"windows64"	"52"
+				"windows"	"53"
 			}
 			// STRING: "Hit Location: Gear"
 			"TraceAttack"
 			{
-				"windows"	"65"
-				"windows64"	"65"
+				"windows"	"66"
 			}
 			// STRING: "Ignoring bogus angles (%f,%f,%f) from vphysics! (entity %s)"
 			"VPhysicsUpdate"
 			{
-				"windows"	"165"
-				"windows64"	"165"
+				"windows"	"166"
 			}
 			// Weapon_* functions can be found in vscript's "ScriptWeapon_*"
 			"Weapon_CanUse"
 			{
-				"windows"	"274"
-				"windows64"	"274"
+				"windows"	"275"
 			}
 			"Weapon_Equip"
 			{
-				"windows"	"275"
-				"windows64"	"275"
+				"windows"	"276"
 			}
 			"Weapon_Drop"
 			{
-				"windows"	"277"
-				"windows64"	"277"
+				"windows"	"278"
 			}
 			"Weapon_Switch"
 			{
-				"windows"	"278"
-				"windows64"	"278"
+				"windows"	"279"
 			}
 			"Weapon_CanSwitchTo"
 			{
-				"windows"	"280"
-				"windows64"	"280"
+				"windows"	"281"
 			}
 		}
 	}
@@ -159,7 +135,6 @@
 			"EntityListeners"
 			{
 				"windows"	"131108"
-				"windows64"	"262200"
 			}
 		}
 	}

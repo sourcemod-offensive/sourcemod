@@ -835,7 +835,7 @@ static cell_t StopSound(IPluginContext *pContext, const cell_t *params)
 	char *name;
 	pContext->LocalToString(params[3], &name);
 
-#if SOURCE_ENGINE >= SE_PORTAL2
+#if SOURCE_ENGINE >= SE_PORTAL2 || SOURCE_ENGINE == SE_CSSO
 	engsound->StopSound(entity, channel, name, -1);
 #else
 	engsound->StopSound(entity, channel, name);
